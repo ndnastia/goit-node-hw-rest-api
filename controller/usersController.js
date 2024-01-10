@@ -1,4 +1,4 @@
-const { createUser, loginUser, getUserById } = require("../services/usersServices");
+const { createUser, loginUser, getUserById, updateAvatar } = require("../services/usersServices");
 
 const registerUser =  async (req, res) => {
     console.log(req.body)
@@ -54,10 +54,29 @@ const getCurrentUser = async(req, res) => {
         })
     
 }
+
+const updatedAvatar = async(req,res) => {
+  try{
+    const {_id} = req.user;
+    await getUserById(_id);
+    const updatedUser = await updateAvatar(req.body, req.user, req.file);
+
+      res.status(200).json({
+        msg: 'Success!',
+        user: updatedUser,
+      });
+  }catch (error) {
+    res.status(401).json({
+      message: "Not authorized",
+    })
+  }
+  
+}
   
   module.exports = {
     registerUser,
     loggedUser,
     logoutUser,
-    getCurrentUser
+    getCurrentUser,
+    updatedAvatar
   }

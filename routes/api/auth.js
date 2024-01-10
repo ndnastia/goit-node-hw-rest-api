@@ -1,6 +1,6 @@
 const express = require('express');
 const { checkAuthUser, protectToken } = require('../../middlewares/authMiddleware');
-const { registerUser, loggedUser, logoutUser, getCurrentUser } = require('../../controller/usersController');
+const { registerUser, loggedUser, logoutUser, getCurrentUser, updatedAvatar } = require('../../controller/usersController');
 
 
 
@@ -24,5 +24,9 @@ router
 router
     .route('/current')
     .get(getCurrentUser)
+
+router
+    .route('/avatars')
+    .patch(updatedAvatar)
 
 module.exports = router
