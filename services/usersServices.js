@@ -1,10 +1,13 @@
 const User = require("../models/usersModel");
 const { signToken } = require("./jwtServices");
-const ImageService = require('./imageServices')
+const ImageService = require('./imageServices');
+const Email = require('./emailServices');
+const { nanoid } = require("nanoid");
 
 
 
 const createUser = async (userData) => {
+    const verificationToken = nanoid();
     const {email} = userData;
    
     const user = await User.findOne({email});
@@ -13,12 +16,14 @@ const createUser = async (userData) => {
         throw new Error(409, "Email in use")
     }
     try {
-    const newUser = await User.create(userData);
+    const newUser = await User.create({...userData, verificationToken});
+    
+    await new Email(newUser, `http://localhost:3000/api/users/verify/${verificationToken}`).sendVerificationToken();
     newUser.password = undefined;
 
     const token = signToken(newUser.id)
 
-    return {user: newUser, token};
+    return {user: newUser, token, verificationToken};
     } catch(error) {
         console.error('Error creating user:', error.message);
         throw error;
@@ -78,9 +83,42 @@ const updateAvatar = async(userData, user, file) => {
     
 }
 
+    
+const getUserByToken = async(verificationToken) => {
+    const user = await User.findOne(verificationToken);
+
+    if(!user) {
+        throw new Error(404, "Not found")
+    }
+
+    user.verificationToken = null;
+    user.verify = true;
+
+    return user.save();
+}
+
+const sendVerificationEmail = async(userData) => {
+    const {email, verificationToken} = userData;
+    const user = await User.findOne({email});
+    if(!email) {
+        throw new Error(400, 'Missing required field email');
+    }
+
+    if(verificationToken) {
+        throw new Error(400, 'Verification has already been passed' )
+    }
+
+    if(!verificationToken) {
+    user.verificationToken = nanoid();
+    await new Email(user, `http://localhost:3000/api/users/verify/${user.verificationToken}`).sendVerificationToken();
+    }
+}
+
 module.exports = {
     createUser,
     loginUser, 
     getUserById,
-    updateAvatar
+    updateAvatar,
+    getUserByToken,
+    sendVerificationEmail,
 }

@@ -1,16 +1,18 @@
-const { createUser, loginUser, getUserById, updateAvatar } = require("../services/usersServices");
+const { createUser, loginUser, getUserById, updateAvatar, getUserByToken, sendVerificationEmail } = require("../services/usersServices");
+
 
 const registerUser =  async (req, res) => {
     console.log(req.body)
     try {
       
       const {user, token} = await createUser(req.body);
+      
       res.status(201).json({ 
         message: 'New user was registered',
         user,
-        token })
+        token,})
     } catch {
-      res.status(402).json({
+      res.status(400).json({
         message: "Ooops, something went wrong",
       })
     }
@@ -72,11 +74,35 @@ const updatedAvatar = async(req,res) => {
   }
   
 }
+
+const getVerifiedToken = async(req, res) => {
+  try {
+    const {verificationToken} = req.user;
+    await getUserByToken(verificationToken);
+
+    res.status(200).json({
+      message: "Verification successful",
+  })
+  } catch (error) {
+    res.status(400).json({
+      message: "Ooops, something went wrong",
+    })
+  }
+}
+
+const getVerificationEmail = async(req, res) => {
+  await sendVerificationEmail(req.body);
+  res.status(200).json({
+    message: "Verification has already been passed",
+})
+}
   
   module.exports = {
     registerUser,
     loggedUser,
     logoutUser,
     getCurrentUser,
-    updatedAvatar
+    updatedAvatar,
+    getVerifiedToken,
+    getVerificationEmail
   }

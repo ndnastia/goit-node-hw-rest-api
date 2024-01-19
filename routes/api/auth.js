@@ -1,6 +1,6 @@
 const express = require('express');
-const { checkAuthUser, protectToken } = require('../../middlewares/authMiddleware');
-const { registerUser, loggedUser, logoutUser, getCurrentUser, updatedAvatar } = require('../../controller/usersController');
+const { checkAuthUser, protectToken, checkEmail, restrictedLogin } = require('../../middlewares/authMiddleware');
+const { registerUser, loggedUser, logoutUser, getCurrentUser, updatedAvatar, getVerifiedToken, getVerificationEmail } = require('../../controller/usersController');
 
 
 
@@ -10,12 +10,22 @@ router
     .route('/register')
     .post(checkAuthUser, registerUser)
 
+router.use(restrictedLogin)
+
 router
     .route('/login')
     .post(checkAuthUser, loggedUser)
 
 router.use(protectToken)
 
+
+router
+    .route('/verify/:verificationToken')
+    .get(getVerifiedToken)
+
+router
+    .route('/verify')
+    .post(checkEmail, getVerificationEmail)
 
 router
     .route('/logout')

@@ -13,6 +13,17 @@ Joi
     })
     .validate(data);
 
+  const userEmailValidator = (data) => 
+    Joi
+        .object()
+        .options({ abortEarly: false })
+        .keys({ 
+          email: Joi.string().email().required(),
+        })
+        .validate(data);
+    
+
 module.exports = {
     authUserDataValidator,
+    userEmailValidator,
 }
